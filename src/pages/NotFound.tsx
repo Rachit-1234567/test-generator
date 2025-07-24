@@ -13,14 +13,6 @@ const NotFound = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      {/* Logo */}
-      <div className="absolute top-4 left-4">
-        <img 
-          src="/lovable-uploads/realthinks-logo.png" 
-          alt="RealThinks Logo" 
-          className="h-8 w-auto"
-        />
-      </div>
       
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4">404</h1>

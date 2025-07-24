@@ -124,14 +124,6 @@ const Requirements = () => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Fixed Header */}
       <div className="sticky top-0 z-10 bg-background border-b p-6 space-y-6">
-        {/* Logo */}
-        <div className="absolute top-4 left-4">
-          <img 
-            src="/lovable-uploads/realthinks-logo.png" 
-            alt="RealThinks Logo" 
-            className="h-8 w-auto"
-          />
-        </div>
         
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-4">

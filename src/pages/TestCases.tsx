@@ -144,7 +144,7 @@ const TestCases = () => {
           steps: version.steps,
           expectedResult: version.expectedResult,
           postconditions: version.postconditions,
-          version: (tc.version || 1) + 1,
+          version: version.version,
           timestamp: new Date().toISOString()
         };
       }
@@ -152,27 +152,6 @@ const TestCases = () => {
     });
 
     setTestCases(updatedTestCases);
-
-    // Update version history
-    const newVersionHistory = new Map(versionHistory);
-    const testCaseVersions = newVersionHistory.get(version.testCaseId) || [];
-    const restoredTestCase = updatedTestCases.find(tc => tc.testCaseId === version.testCaseId);
-    
-    if (restoredTestCase) {
-      testCaseVersions.push({
-        version: restoredTestCase.version || 1,
-        timestamp: restoredTestCase.timestamp || new Date().toISOString(),
-        testCaseId: restoredTestCase.testCaseId,
-        description: restoredTestCase.description,
-        preconditions: restoredTestCase.preconditions,
-        steps: restoredTestCase.steps,
-        expectedResult: restoredTestCase.expectedResult,
-        postconditions: restoredTestCase.postconditions,
-        modificationReason: `Restored from version ${version.version}`
-      });
-      newVersionHistory.set(version.testCaseId, testCaseVersions);
-      setVersionHistory(newVersionHistory);
-    }
   };
 
   const handleDownloadAll = () => {
@@ -384,14 +363,6 @@ const TestCases = () => {
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Fixed Header */}
       <div className="flex-shrink-0 border-b bg-background p-4">
-        {/* Logo */}
-        <div className="absolute top-4 left-4">
-          <img 
-            src="/lovable-uploads/realthinks-logo.png" 
-            alt="RealThinks Logo" 
-            className="h-8 w-auto"
-          />
-        </div>
         
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between">

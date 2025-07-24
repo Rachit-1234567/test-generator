@@ -146,14 +146,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background p-6">
-      {/* Logo */}
-      <div className="absolute top-4 left-4">
-        <img 
-          src="/lovable-uploads/realthinks-logo.png" 
-          alt="RealThinks Logo" 
-          className="h-8 w-auto"
-        />
-      </div>
       
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="text-center space-y-4">

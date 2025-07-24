@@ -45,17 +45,10 @@ const TestCaseModificationDialog = ({
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  // Detect if the user wants to split test cases
-  const isSplitRequest = modificationInput.toLowerCase().includes('split') && 
-    (modificationInput.toLowerCase().includes('2') || 
-     modificationInput.toLowerCase().includes('3') || 
-     modificationInput.toLowerCase().includes('4') ||   
-     modificationInput.toLowerCase().includes('5') || 
-     modificationInput.toLowerCase().includes('two') || 
-     modificationInput.toLowerCase().includes('three') || 
-     modificationInput.toLowerCase().includes('four') || 
-     modificationInput.toLowerCase().includes('five') ||
-     modificationInput.toLowerCase().includes('multiple'));
+  // Detect if the user wants to split test cases with flexible keywords
+  const isSplitRequest = Boolean(modificationInput.toLowerCase().match(/(split|divide|break|separate).*(into|test|case)/i)) ||
+    modificationInput.toLowerCase().includes('multiple') ||
+    /\b(2|3|4|5|two|three|four|five)\b/.test(modificationInput.toLowerCase());
 
   const handleModify = async () => {
     if (!modificationInput.trim()) {
@@ -127,15 +120,6 @@ const TestCaseModificationDialog = ({
         </DialogHeader>
         
         <div className="space-y-6">
-          {isSplitRequest && (
-            <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <Info className="h-4 w-4 text-blue-600" />
-              <div className="text-sm text-blue-800">
-                <Badge variant="secondary" className="mr-2">Split Mode</Badge>
-                This will split the selected test cases into multiple new test cases.
-              </div>
-            </div>
-          )}
 
           <div>
             <label className="text-sm font-medium mb-2 block">

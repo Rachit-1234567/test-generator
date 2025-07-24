@@ -162,9 +162,14 @@ const FileAttachment: React.FC<FileAttachmentProps> = ({
           <p className="text-sm text-gray-600">
             Drag and drop files here or click to select
           </p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 mt-1 mb-3">
             PDF, TXT, DOCX, PNG, JPG, WEBP (max 10MB)
           </p>
+          <div className="text-xs text-gray-400 leading-relaxed">
+            <p>e.g., "Attach dependency for the test case"</p>
+            <p>"Extra knowledge for AI to generate test case"</p>
+            <p>"More data = more accurate test case — attach relevant file"</p>
+          </div>
         </label>
       </div>
 
