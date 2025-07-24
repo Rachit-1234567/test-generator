@@ -122,6 +122,15 @@ const Requirements = () => {
 
   return (
     <div className="min-h-screen bg-background p-6">
+      {/* Logo */}
+      <div className="absolute top-4 left-4">
+        <img 
+          src="/lovable-uploads/202b2c47-de0d-4307-a5ed-97b3c7181680.png" 
+          alt="Company Logo" 
+          className="h-8 w-auto"
+        />
+      </div>
+      
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center gap-4">
           <Button

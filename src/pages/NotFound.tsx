@@ -13,6 +13,15 @@ const NotFound = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      {/* Logo */}
+      <div className="absolute top-4 left-4">
+        <img 
+          src="/lovable-uploads/202b2c47-de0d-4307-a5ed-97b3c7181680.png" 
+          alt="Company Logo" 
+          className="h-8 w-auto"
+        />
+      </div>
+      
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4">404</h1>
         <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>

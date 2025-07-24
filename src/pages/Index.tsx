@@ -93,27 +93,68 @@ const Index = () => {
     }
   };
 
-  const handleGenerateTestCases = () => {
-    if (!parsedData) {
+  const handleProcessAndNavigate = async () => {
+    if (!selectedFile) {
       toast({
-        title: "No data available",
-        description: "Please preview the file first.",
+        title: "No file selected",
+        description: "Please select a file first.",
         variant: "destructive",
       });
       return;
     }
 
-    navigate("/requirements", {
-      state: {
-        parsedData,
-        testabilityType,
-        file: selectedFile
+    setIsPreviewLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      const response = await fetch('http://localhost:8000/api/extract', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        toast({
+          title: "File processed successfully",
+          description: `Found ${result.requirements.length} requirements.`,
+        });
+        
+        // Navigate directly to requirements page
+        navigate("/requirements", {
+          state: {
+            parsedData: result.requirements,
+            testabilityType,
+            file: selectedFile
+          }
+        });
+      } else {
+        throw new Error(result.error || 'Failed to extract requirements');
       }
-    });
+    } catch (error) {
+      console.error('Error processing file:', error);
+      toast({
+        title: "Error processing file",
+        description: error instanceof Error ? error.message : "Please try again with a different file.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPreviewLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-background p-6">
+      {/* Logo */}
+      <div className="absolute top-4 left-4">
+        <img 
+          src="/lovable-uploads/202b2c47-de0d-4307-a5ed-97b3c7181680.png" 
+          alt="Company Logo" 
+          className="h-8 w-auto"
+        />
+      </div>
+      
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold">AI Test Case Generator</h1>
@@ -175,49 +216,17 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3 pt-4">
+            {/* Action Button */}
+            <div className="flex justify-center pt-4">
               <Button
-                onClick={handlePreview}
+                onClick={handleProcessAndNavigate}
                 disabled={!selectedFile || isPreviewLoading}
-                variant="outline"
-                className="flex-1 flex items-center gap-2"
+                className="w-full flex items-center gap-2"
               >
                 <FileText className="h-4 w-4" />
                 {isPreviewLoading ? "Processing..." : "Process File"}
               </Button>
-              
-              <Button
-                onClick={handleGenerateTestCases}
-                disabled={!parsedData}
-                className="flex-1 flex items-center gap-2"
-              >
-                <Eye className="h-4 w-4" />
-                Preview
-              </Button>
             </div>
-
-            {/* Preview Results */}
-            {parsedData && (
-              <div className="mt-6 p-4 bg-muted rounded-md">
-                <h3 className="font-semibold mb-2">Preview Results</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Found {parsedData.length} requirements. Click "Generate Test Cases" to proceed.
-                </p>
-                <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {parsedData.slice(0, 3).map((req) => (
-                    <div key={req.id} className="text-sm p-2 bg-background rounded border">
-                      <span className="font-medium">{req.id}:</span> {req.description}
-                    </div>
-                  ))}
-                  {parsedData.length > 3 && (
-                    <div className="text-sm text-muted-foreground text-center">
-                      ... and {parsedData.length - 3} more requirements
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>
