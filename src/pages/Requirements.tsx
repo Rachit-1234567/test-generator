@@ -121,79 +121,90 @@ const Requirements = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      {/* Logo */}
-      <div className="absolute top-4 left-4">
-        <img 
-          src="/lovable-uploads/202b2c47-de0d-4307-a5ed-97b3c7181680.png" 
-          alt="Company Logo" 
-          className="h-8 w-auto"
-        />
-      </div>
-      
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            onClick={() => navigate("/")}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Upload
-          </Button>
-          <h1 className="text-3xl font-bold">Select Requirements</h1>
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Fixed Header */}
+      <div className="sticky top-0 z-10 bg-background border-b p-6 space-y-6">
+        {/* Logo */}
+        <div className="absolute top-4 left-4">
+          <img 
+            src="/lovable-uploads/realthinks-logo.png" 
+            alt="RealThinks Logo" 
+            className="h-8 w-auto"
+          />
         </div>
+        
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              onClick={() => navigate("/")}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Upload
+            </Button>
+            <h1 className="text-3xl font-bold">Select Requirements</h1>
+          </div>
+        </div>
+      </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Parsed Requirements ({requirements.length})</span>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="select-all"
-                  checked={selectedRequirements.size === requirements.length && requirements.length > 0}
-                  onCheckedChange={handleSelectAll}
-                />
-                <label htmlFor="select-all" className="text-sm font-normal">
-                  Select All
-                </label>
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">Select</TableHead>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Category</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {requirements.map((requirement) => (
-                    <TableRow key={requirement.id}>
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedRequirements.has(requirement.id)}
-                          onCheckedChange={(checked) => 
-                            handleRequirementSelect(requirement.id, checked as boolean)
-                          }
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium">{requirement.id}</TableCell>
-                      <TableCell>{requirement.description}</TableCell>
-                      <TableCell>{requirement.category || "General"}</TableCell>
+      {/* Scrollable Content */}
+      <div className="flex-1 p-6 pt-0">
+        <div className="max-w-6xl mx-auto">
+          <Card className="h-[calc(100vh-240px)] flex flex-col">
+            <CardHeader className="flex-shrink-0">
+              <CardTitle className="flex items-center justify-between">
+                <span>Parsed Requirements ({requirements.length})</span>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="select-all"
+                    checked={selectedRequirements.size === requirements.length && requirements.length > 0}
+                    onCheckedChange={handleSelectAll}
+                  />
+                  <label htmlFor="select-all" className="text-sm font-normal">
+                    Select All
+                  </label>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-hidden p-0">
+              <div className="h-full overflow-auto border rounded-md">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-background z-10">
+                    <TableRow>
+                      <TableHead className="w-12">Select</TableHead>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Category</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {requirements.map((requirement) => (
+                      <TableRow key={requirement.id}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedRequirements.has(requirement.id)}
+                            onCheckedChange={(checked) => 
+                              handleRequirementSelect(requirement.id, checked as boolean)
+                            }
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">{requirement.id}</TableCell>
+                        <TableCell>{requirement.description}</TableCell>
+                        <TableCell>{requirement.category || "General"}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
-        <div className="flex justify-between items-center">
+      {/* Fixed Footer */}
+      <div className="sticky bottom-0 z-10 bg-background border-t p-6">
+        <div className="max-w-6xl mx-auto flex justify-between items-center">
           <p className="text-muted-foreground">
             {selectedRequirements.size} of {requirements.length} requirements selected
           </p>

@@ -149,8 +149,8 @@ const Index = () => {
       {/* Logo */}
       <div className="absolute top-4 left-4">
         <img 
-          src="/lovable-uploads/202b2c47-de0d-4307-a5ed-97b3c7181680.png" 
-          alt="Company Logo" 
+          src="/lovable-uploads/realthinks-logo.png" 
+          alt="RealThinks Logo" 
           className="h-8 w-auto"
         />
       </div>
