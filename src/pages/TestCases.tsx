@@ -381,161 +381,172 @@ const TestCases = () => {
   const selectedTestCaseObjects = testCases.filter(tc => selectedTestCases.has(tc.id));
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      {/* Logo */}
-      <div className="absolute top-4 left-4">
-        <img 
-          src="/lovable-uploads/realthinks-logo.png" 
-          alt="RealThinks Logo" 
-          className="h-8 w-auto"
-        />
-      </div>
-      
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              onClick={handleBackToRequirements}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Requirements
-            </Button>
-            <h1 className="text-3xl font-bold">Generated Test Cases</h1>
-          </div>
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
+      {/* Fixed Header */}
+      <div className="flex-shrink-0 border-b bg-background p-4">
+        {/* Logo */}
+        <div className="absolute top-4 left-4">
+          <img 
+            src="/lovable-uploads/realthinks-logo.png" 
+            alt="RealThinks Logo" 
+            className="h-8 w-auto"
+          />
+        </div>
+        
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                onClick={handleBackToRequirements}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Requirements
+              </Button>
+              <h1 className="text-3xl font-bold">Generated Test Cases</h1>
+            </div>
 
-          <div className="flex items-center gap-2">
-            <Button 
-              onClick={handleDownloadAll} 
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Download All
-            </Button>
-            <Button 
-              onClick={handleDownloadSelected}
-              disabled={selectedTestCases.size === 0}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Download Selected ({selectedTestCases.size})
-            </Button>
-            <Button 
-              onClick={handleModifySelected}
-              disabled={selectedTestCases.size === 0}
-              className="flex items-center gap-2"
-            >
-              <Edit className="h-4 w-4" />
-              Modify Selected ({selectedTestCases.size})
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                onClick={handleDownloadAll} 
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Export All
+              </Button>
+              <Button 
+                onClick={handleDownloadSelected}
+                disabled={selectedTestCases.size === 0}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Export Selected ({selectedTestCases.size})
+              </Button>
+              <Button 
+                onClick={handleModifySelected}
+                disabled={selectedTestCases.size === 0}
+                className="flex items-center gap-2"
+              >
+                <Edit className="h-4 w-4" />
+                Modify Selected ({selectedTestCases.size})
+              </Button>
+            </div>
           </div>
         </div>
+      </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Test Cases ({testCases.length})</span>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="select-all-testcases"
-                  checked={selectedTestCases.size === testCases.length && testCases.length > 0}
-                  onCheckedChange={handleSelectAll}
-                />
-                <label htmlFor="select-all-testcases" className="text-sm font-normal">
-                  Select All
-                </label>
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">Select</TableHead>
-                    <TableHead>Test Case ID</TableHead>
-                    <TableHead>Requirement ID</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Preconditions</TableHead>
-                    <TableHead>Input Steps</TableHead>
-                    <TableHead>Expected Result</TableHead>
-                    <TableHead>Postconditions</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Version</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {testCases.map((testCase) => (
-                    <TableRow key={testCase.id}>
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedTestCases.has(testCase.id)}
-                          onCheckedChange={(checked) => 
-                            handleTestCaseSelect(testCase.id, checked as boolean)
-                          }
-                        />
-                      </TableCell>
-                      <TableCell>{testCase.testCaseId}</TableCell>
-                      <TableCell>{testCase.requirementId}</TableCell>
-                      <TableCell className="max-w-xs">
-                        <div className="whitespace-pre-wrap break-words" title={testCase.description}>
-                          {testCase.description}
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-xs">
-                        <div className="whitespace-pre-wrap break-words" title={testCase.preconditions}>
-                          {testCase.preconditions}
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-sm">
-                        <div className="whitespace-pre-wrap space-y-1">
-                          {testCase.steps.map((step, index) => (
-                            <div key={index}>
-                              {step}
-                            </div>
-                          ))}
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-xs">
-                        <div className="whitespace-pre-wrap break-words" title={testCase.expectedResult}>
-                          {testCase.expectedResult}
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-xs">
-                        <div className="whitespace-pre-wrap break-words" title={testCase.postconditions}>
-                          {testCase.postconditions}
-                        </div>
-                      </TableCell>
-                      <TableCell>{testCase.testabilityType}</TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          v{testCase.version || 1}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleVersionHistory(testCase.testCaseId)}
-                          className="flex items-center gap-1"
-                        >
-                          <History className="h-3 w-3" />
-                          History
-                        </Button>
-                      </TableCell>
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-hidden p-6">
+        <div className="max-w-7xl mx-auto h-full flex flex-col">
+          <Card className="flex-1 flex flex-col overflow-hidden">
+            <CardHeader className="flex-shrink-0">
+              <CardTitle className="flex items-center justify-between">
+                <span>Test Cases ({testCases.length})</span>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="select-all-testcases"
+                    checked={selectedTestCases.size === testCases.length && testCases.length > 0}
+                    onCheckedChange={handleSelectAll}
+                  />
+                  <label htmlFor="select-all-testcases" className="text-sm font-normal">
+                    Select All
+                  </label>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-hidden p-0">
+              <div className="h-full overflow-y-auto border rounded-md">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-background z-10">
+                    <TableRow>
+                      <TableHead className="w-12 text-xs font-medium p-2">Select</TableHead>
+                      <TableHead className="text-xs font-medium p-2">Test Case ID</TableHead>
+                      <TableHead className="text-xs font-medium p-2">Requirement ID</TableHead>
+                      <TableHead className="text-xs font-medium p-2">Description</TableHead>
+                      <TableHead className="text-xs font-medium p-2">Preconditions</TableHead>
+                      <TableHead className="text-xs font-medium p-2">Input Steps</TableHead>
+                      <TableHead className="text-xs font-medium p-2">Expected Result</TableHead>
+                      <TableHead className="text-xs font-medium p-2">Postconditions</TableHead>
+                      <TableHead className="text-xs font-medium p-2">Type</TableHead>
+                      <TableHead className="text-xs font-medium p-2">Version</TableHead>
+                      <TableHead className="text-xs font-medium p-2">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {testCases.map((testCase) => (
+                      <TableRow key={testCase.id}>
+                        <TableCell className="p-2">
+                          <Checkbox
+                            checked={selectedTestCases.has(testCase.id)}
+                            onCheckedChange={(checked) => 
+                              handleTestCaseSelect(testCase.id, checked as boolean)
+                            }
+                          />
+                        </TableCell>
+                        <TableCell className="text-xs p-2">{testCase.testCaseId}</TableCell>
+                        <TableCell className="text-xs p-2">{testCase.requirementId}</TableCell>
+                        <TableCell className="max-w-[200px] p-2">
+                          <div className="text-xs whitespace-pre-wrap break-words leading-relaxed" title={testCase.description}>
+                            {testCase.description}
+                          </div>
+                        </TableCell>
+                        <TableCell className="max-w-[180px] p-2">
+                          <div className="text-xs whitespace-pre-wrap break-words leading-relaxed" title={testCase.preconditions}>
+                            {testCase.preconditions}
+                          </div>
+                        </TableCell>
+                        <TableCell className="max-w-[220px] p-2">
+                          <div className="text-xs whitespace-pre-wrap space-y-1 leading-relaxed">
+                            {testCase.steps.map((step, index) => (
+                              <div key={index} className="mb-1">
+                                {step}
+                              </div>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell className="max-w-[180px] p-2">
+                          <div className="text-xs whitespace-pre-wrap break-words leading-relaxed" title={testCase.expectedResult}>
+                            {testCase.expectedResult}
+                          </div>
+                        </TableCell>
+                        <TableCell className="max-w-[180px] p-2">
+                          <div className="text-xs whitespace-pre-wrap break-words leading-relaxed" title={testCase.postconditions}>
+                            {testCase.postconditions}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs p-2">{testCase.testabilityType}</TableCell>
+                        <TableCell className="p-2">
+                          <div className="text-xs">
+                            v{testCase.version || 1}
+                          </div>
+                        </TableCell>
+                        <TableCell className="p-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleVersionHistory(testCase.testCaseId)}
+                            className="flex items-center gap-1 h-7 px-2 text-xs"
+                          >
+                            <History className="h-3 w-3" />
+                            History
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
-        <div className="flex justify-between items-center">
+      {/* Fixed Footer */}
+      <div className="flex-shrink-0 border-t bg-background p-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
           <p className="text-muted-foreground">
             {selectedTestCases.size} of {testCases.length} test cases selected
           </p>
@@ -544,11 +555,10 @@ const TestCases = () => {
             onClick={() => navigate("/")}
             className="flex items-center gap-2"
           >
-            Generate New Test Cases
+            Restart
           </Button>
         </div>
       </div>
-
       <TestCaseModificationDialog
         open={modificationDialogOpen}
         onOpenChange={setModificationDialogOpen}
