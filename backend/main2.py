@@ -70,75 +70,158 @@ class ModifyTestCasesResponse(BaseModel):
 class DownloadSelectedRequest(BaseModel):
     testCases: List[TestCase]
 
-# Automotive Test Engineer Prompt Template
-AUTOMOTIVE_PROMPT_TEMPLATE = """You are a senior automotive test engineer working on ECU validation for production software. You are given a simplified OEM requirement document (or an expert-cleaned version), and your task is to generate technically accurate, hardware-implementable test cases suitable for integration and validation teams.
+# Fixed Automotive Test Engineer Prompt Template - keeping your exact JSON structure
+def create_automotive_prompt(requirements_data, testability_type):
+    """Create the automotive prompt with your exact JSON template"""
+    
+    # Your exact JSON template with proper parameter substitution
+    template_json = {
+        "Role": "TestEngineer",
+        "Rule": "ECU_Validation",
+        "examples": [
+            "UDS Diagnostic: 22 [DID][DID] → 62 [DID][DID] [Data]",
+            "Security Access: 27 [SEC_LVL] → 67 [SEC_LVL] [SEED_BYTES]",
+            "IO Control: 2F [IOI_HIGH] [IOI_LOW] [SUB_FUNCTION] [CONTROL_VALUE] → 6F [IOI_HIGH] [IOI_LOW] [SUB_FUNCTION] [CONTROL_VALUE]"
+        ],
+        "Module": [
+            {
+                "play": [
+                    "22 [DID][DID]",
+                    "27 [SEC_LVL]",
+                    "2F [IOI_HIGH] [IOI_LOW] [SUB_FUNCTION] [CONTROL_VALUE]"
+                ],
+                "IO": {
+                    "PositiveResponse": {
+                        "ReadDataById": "62 [DID][DID] [Data]",
+                        "SecurityAccess": "67 [SEC_LVL] [SEED_BYTES]",
+                        "IOControl": "6F [IOI_HIGH] [IOI_LOW] [SUB_FUNCTION] [CONTROL_VALUE]"
+                    },
+                    "NegativeResponse": {
+                        "SecurityAccessDenied": "7F 2F 33",
+                        "InvalidParameter": "7F 22 31"
+                    }
+                }
+            }
+        ],
+        "TestCaseFormat": {
+            "testCaseId": "TC_001",
+            "requirementId": "REQ_001",
+            "description": "[Copy requirement text exactly without changing or rephrasing]",
+            "preconditions": "[ECU initialization and setup conditions]",
+            "steps": [
+                "Step 1: [Action with specific technical details]",
+                "Step 2: [Action with specific technical details]",
+                "Step 3: [Action with specific technical details]"
+            ],
+            "expectedResult": "[Expected outcomes with specific technical responses and numbered steps]",
+            "postconditions": "[System state after test execution]"
+        },
+        "Instructions": {
+            "StepFormat": "Numbered steps (Step 1, Step 2...)",
+            "StepRequirements": [
+                "Factual",
+                "Observable",
+                "Hardware-executable",
+                "Use realistic technical language",
+                "Minimize theory, maximize executable actions"
+            ],
+            "PracticalFocus": True
+        },
+        "TechnicalSpecificity": {
+            "UDS": {
+                "RequestFormat": "22 [DID][DID]",
+                "ResponseFormat": "62 [DID][DID] [Data]"
+            },
+            "SecurityAccess": {
+                "RequestFormat": "27 [SEC_LVL]",
+                "ResponseFormat": "67 [SEC_LVL] [SEED_BYTES...]"
+            },
+            "IOControl": {
+                "RequestFormat": "2F [IOI_HIGH] [IOI_LOW] [SUB_FUNCTION] [CONTROL_VALUE]",
+                "ResponseFormat": "6F [IOI_HIGH] [IOI_LOW] [SUB_FUNCTION] [CONTROL_VALUE]"
+            }
+        },
+        "Placeholders": {
+            "ReadDID": {
+                "Step": "Send 22 [DID][DID] request to ECU",
+                "Expected": "ECU returns 62 [DID][DID] [Data] positive response",
+                "Where": {
+                    "[DID][DID]": "Data Identifier from ODX/CDD",
+                    "[Data]": "Current I/O status"
+                }
+            },
+            "SecurityAccess": {
+                "Step": "Send 27 [SEC_LVL] request to ECU",
+                "Expected": "ECU returns 67 [SEC_LVL] [SEED_BYTES...]",
+                "Where": {
+                    "[SEC_LVL]": "Security level",
+                    "[SEED_BYTES...]": "Random seed for key calculation"
+                }
+            },
+            "IOControl": {
+                "Step": "Send 2F [IOI_HIGH] [IOI_LOW] [SUB_FUNCTION] [CONTROL_VALUE] request",
+                "Expected": "ECU returns 6F [IOI_HIGH] [IOI_LOW] [SUB_FUNCTION] [CONTROL_VALUE] positive response",
+                "Where": {
+                    "[IOI_HIGH][IOI_LOW]": "IO Control Parameter",
+                    "[SUB_FUNCTION]": "Control type",
+                    "[CONTROL_VALUE]": "Target value"
+                }
+            }
+        },
+        "ErrorHandling": {
+            "SecurityDenied": {
+                "ExpectedResult": "7F 2F 33",
+                "Meaning": "NRC_SECURITY_ACCESS_DENIED"
+            },
+            "InvalidParameter": {
+                "ExpectedResult": "7F 22 31",
+                "Meaning": "NRC_REQUEST_OUT_OF_RANGE"
+            },
+            "GeneralFormat": "7F [SERVICE_ID] [NRC_CODE]"
+        },
+        "OutputRules": {
+            "LanguageStyle": "Technical, concise, executable",
+            "Avoid": [
+                "Explanatory text",
+                "Robotic or generic phrasing",
+                "Engineering theory unless required"
+            ],
+            "MustSupport": ["Vector Canoe", "CAPL", "Diagnostic Tools"]
+        },
+        "TechnicalGuidance": {
+            "OnlyIncludeCalculationsIfRequired": True,
+            "UnspecifiedParams": [
+                "[Technical Detail: To be defined from ODX/CDD]",
+                "[Parameter: Refer to ECU specification]"
+            ]
+        },
+        "ExecutionNotes": {
+            "ReturnFormat": "JSON array",
+            "NoExtraComments": True,
+            "Emphasis": "Immediate implementability"
+        },
+        "TestingApproach": {
+            "Blackbox": "Input-output based without internal knowledge",
+            "Graybox": "Partial internal structure knowledge",
+            "Whitebox": "Tests internal logic/paths"
+        },
+        "Inputs": {
+            "testability_type": testability_type,
+            "requirements": requirements_data
+        }
+    }
+    
+    # Create the complete prompt with the JSON structure
+    prompt = f"""You are a senior automotive test engineer working on ECU validation for production software. You are given a simplified OEM requirement document (or an expert-cleaned version), and your task is to generate technically accurate, hardware-implementable test cases suitable for integration and validation teams.
 
-For each requirement in the input list, generate exactly one test case. Process each requirement independently and do not carry forward assumptions.
+Here is your complete configuration and instructions in JSON format:
 
-Your output must be in JSON format with the following structure for each test case:
-{{
-  "testCaseId": "TC_001",
-  "requirementId": "REQ_001",
-  "description": "[Copy requirement text exactly without changing or rephrasing]",
-  "preconditions": "[ECU initialization and setup conditions]",
-  "steps": ["Step 1: [Action]", "Step 2: [Action]", "Step 3: [Action]"],
-  "expectedResult": "[Expected outcomes with numbered steps if needed]",
-  "postconditions": "[System state after test execution]"
-}}
+{json.dumps(template_json, indent=2)}
 
-### Instructions for Generating Test Cases:
+Based on the above configuration, generate test cases for the provided requirements. Return only a JSON array of test cases following the exact TestCaseFormat specified above."""
+    
+    return prompt
 
-- ✅ Copy the requirement text exactly into the "description" field without changing or rephrasing it. This field must match the input requirement word-for-word.
-- Use **numbered steps** (Step 1, Step 2, Step 3...) in the **steps** and **expectedResult** fields to clearly define actions and outcomes, like an algorithm.
-- Every step must be **factual**, **observable**, and **hardware-executable**.
-- Do **not** make assumptions or guess missing technical details. **If something is unspecified or vague in the requirement, explicitly state that it requires manual definition or further information.**
-- Use **realistic technical language** that mirrors how human automotive testers write. **Provide specific values, CAN IDs, UDS requests, timing parameters, or signal states if the requirement implies them, or indicate where they are missing.**
-
-### Technical Expectations:
-
-- Apply engineering clarity: include frequency calculations, timing logic, bit-length checks, etc. if relevant. **Show the specific calculations or logic derived from the requirement.**
-- Only include UDS frames (e.g., 0x10 01, 0x31 01) or CAN IDs when the requirement directly references diagnostics or communication. **Specify the exact UDS frame or CAN ID if the requirement provides enough detail, or use a placeholder like [Specific UDS Request Needed].**
-- If a requirement references signal timing, bit width, or cycle time — **show the math** or logic clearly. **Provide specific values or ranges based on the requirement, or mark them as needing definition.**
-
-### Output Language and Format Rules:
-
-- Avoid robotic or generic phrasing.
-- Use testable, real-world instructions like:
-  - "Send diagnostic session request using UDS service 0x10 03"
-  - "Monitor CAN ID 0x123 on bus channel 1"
-  - "Set application cycle time to 5 ms"
-- If a requirement is vague, explicitly state that technical details are missing and cannot be generated automatically. **Do not invent details.**
-- Ensure output is clear enough for hardware teams to execute directly using tools like Vector Canoe, CAPL, or diagnostic tools.
-
-### 🔍 Additional Guidance for Logic and Engineering Explanation:
-
-- Only include **engineering logic/math** (e.g., frequency = 1 / period, counter = 4-bit ⇒ range 0–15) if the requirement clearly refers to:
-  - Signal timing, period, or frequency
-  - Application cycle time
-  - Counters, bit-widths, or CRCs
-  - Diagnostic services, E2E profiles, or retry limits
-
-- If the requirement does NOT specify these kinds of details, do **not invent or assume them**. Instead, clearly mark the expected result or step as:
-  - **"[Missing: Required technical detail not provided in requirement]"**
-
-- If error codes are mentioned (e.g., E_SAFETY_VALID_REP), ensure only those codes are expected in the result — do not add others.
-
-### ⚠️ Final Notes:
-
-- Return test cases in JSON array format
-- Do not include extra comments or explanations outside the JSON structure
-- Do not invent technical values (IDs, timing) unless present in the requirement. **If values are missing, indicate that they need to be defined.**
-- Ensure output is clear enough for hardware teams to execute directly using tools like Vector Canoe, CAPL, or diagnostic tools.
-
-Testing approach: **{testability_type}** testing characteristics:
-- Blackbox: Focus on input-output behavior without internal structure knowledge
-- Graybox: Combine black box testing with some internal structure knowledge  
-- Whitebox: Focus on internal code structure, paths, and logic
-
-Requirements to process:
-{requirements}
-
-Generate comprehensive automotive test cases following the above guidelines and return as JSON array."""
 
 @app.post("/api/extract", response_model=ExtractResponse)
 async def extract_requirements(
@@ -218,14 +301,21 @@ async def generate_test_cases(
     file: UploadFile = File(None)  # Make file optional
 ):
     try:
-        # Parse requirements JSON
-        req_data = json.loads(requirements)
+        # Parse requirements JSON with better error handling
+        try:
+            req_data = json.loads(requirements)
+            logger.info(f"Successfully parsed {len(req_data)} requirements")
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse requirements JSON: {str(e)}")
+            logger.error(f"Requirements string: {requirements[:500]}...")
+            return GenerateTestCasesResponse(
+                testCases=[],
+                success=False,
+                error=f"Invalid JSON in requirements: {str(e)}"
+            )
 
-        # Format the automotive prompt with the requirements and testability type
-        formatted_prompt = AUTOMOTIVE_PROMPT_TEMPLATE.format(
-            testability_type=testability_type,
-            requirements=json.dumps(req_data, indent=2)
-        )
+        # Create the automotive prompt using the new function with your exact JSON structure
+        formatted_prompt = create_automotive_prompt(req_data, testability_type)
 
         # Prepare initial content
         contents = [
@@ -237,11 +327,15 @@ async def generate_test_cases(
 
         # Handle optional PDF file
         if file and file.content_type == "application/pdf":
-            raw = await file.read()
-            contents.append(types.Content(role="user", parts=[
-                types.Part(text="Attached PDF file for additional context and reference."),
-                types.Part(inline_data={"mime_type": "application/pdf", "data": raw})
-            ]))
+            try:
+                raw = await file.read()
+                contents.append(types.Content(role="user", parts=[
+                    types.Part(text="Attached PDF file for additional context and reference."),
+                    types.Part(inline_data={"mime_type": "application/pdf", "data": raw})
+                ]))
+                logger.info("PDF file attached to request")
+            except Exception as e:
+                logger.warning(f"Failed to process PDF attachment: {str(e)}")
 
         config = types.GenerateContentConfig(
             temperature=0.1,  # Very low for deterministic, consistent outputs
@@ -249,68 +343,92 @@ async def generate_test_cases(
             max_output_tokens=8192,
         )
         
-        print("Using Gemini 2.5 Flash with automotive prompt...")
-        print(f"Processing {len(req_data)} requirements...")
-        print("Model being used: gemini-2.5-flash")  # Debug line
+        logger.info("Using Gemini 2.0 Flash with automotive prompt...")
+        logger.info(f"Processing {len(req_data)} requirements...")
+        logger.info("Model being used: gemini-2.0-flash-001")
 
         def sync_generate():
             response = ""
-            for chunk in client.models.generate_content_stream(
-                model="gemini-2.5-pro-002",  # Updated to Gemini 2.5 Pro
-                contents=contents,
-                config=config
-            ):
-                if chunk.text:
-                    response += chunk.text
-            return response
+            try:
+                for chunk in client.models.generate_content_stream(
+                    model="gemini-2.0-flash-001",
+                    contents=contents,
+                    config=config
+                ):
+                    if chunk.text:
+                        response += chunk.text
+                return response
+            except Exception as e:
+                logger.error(f"Error in sync_generate: {str(e)}")
+                raise
 
         response_text = await asyncio.to_thread(sync_generate)
+        logger.info(f"Received response from Gemini: {len(response_text)} characters")
 
-        # Extract JSON from Gemini response
+        # Extract JSON from Gemini response with better error handling
         try:
+            # Try to find JSON array in response
             start_idx = response_text.find('[')
             end_idx = response_text.rfind(']') + 1
-            json_str = response_text[start_idx:end_idx] if start_idx != -1 else response_text
+            
+            if start_idx == -1 or end_idx == 0:
+                logger.error("No JSON array found in response")
+                logger.error(f"Response preview: {response_text[:1000]}...")
+                return GenerateTestCasesResponse(
+                    testCases=[],
+                    success=False,
+                    error="No valid JSON array found in AI response. Please try again."
+                )
+            
+            json_str = response_text[start_idx:end_idx]
+            logger.info(f"Extracted JSON string: {len(json_str)} characters")
+            
             test_cases_data = json.loads(json_str)
+            logger.info(f"Successfully parsed {len(test_cases_data)} test cases from JSON")
 
             # Convert to TestCase objects
             test_cases = []
             for i, tc_data in enumerate(test_cases_data):
-                # Handle expectedResult - ensure it's a string
-                expected_result = tc_data.get("expectedResult", "")
-                if isinstance(expected_result, list):
-                    expected_result = "\n".join(str(item) for item in expected_result)
+                try:
+                    # Handle expectedResult - ensure it's a string
+                    expected_result = tc_data.get("expectedResult", "")
+                    if isinstance(expected_result, list):
+                        expected_result = " ".join(str(item) for item in expected_result)
 
-                test_cases.append(TestCase(
-                    id=f"tc-{i+1}",
-                    testCaseId=tc_data.get("testCaseId", f"TC_{i+1:03d}"),
-                    requirementId=tc_data.get("requirementId") or tc_data.get("RequirmentId", ""),
-                    description=tc_data.get("description", ""),
-                    preconditions=tc_data.get("preconditions", ""),
-                    steps=tc_data.get("steps", []),
-                    expectedResult=expected_result,
-                    testabilityType=testability_type,
-                    postconditions=tc_data.get("postconditions", "")
-                ))
+                    test_cases.append(TestCase(
+                        id=f"tc-{i+1}",
+                        testCaseId=tc_data.get("testCaseId", f"TC_{i+1:03d}"),
+                        requirementId=tc_data.get("requirementId") or tc_data.get("RequirmentId", ""),
+                        description=tc_data.get("description", ""),
+                        preconditions=tc_data.get("preconditions", ""),
+                        steps=tc_data.get("steps", []),
+                        expectedResult=expected_result,
+                        testabilityType=testability_type,
+                        postconditions=tc_data.get("postconditions", "")
+                    ))
+                except Exception as e:
+                    logger.error(f"Error processing test case {i}: {str(e)}")
+                    continue
 
-            logger.info(f"Successfully generated {len(test_cases)} test cases using Gemini 2.5 Flash")
+            logger.info(f"Successfully generated {len(test_cases)} test cases using Gemini 2.0 Flash")
             return GenerateTestCasesResponse(testCases=test_cases, success=True)
 
         except json.JSONDecodeError as json_error:
             logger.error(f"Failed to parse JSON from Gemini response: {json_error}")
-            logger.error(f"Raw response: {response_text[:500]}...")
+            logger.error(f"JSON string that failed: {json_str[:500] if 'json_str' in locals() else 'N/A'}...")
+            logger.error(f"Raw response preview: {response_text[:1000]}...")
             return GenerateTestCasesResponse(
                 testCases=[],
                 success=False,
-                error="Failed to parse test cases from AI response. Please try again."
+                error="Failed to parse test cases from AI response. The AI response was not in valid JSON format. Please try again."
             )
 
     except Exception as e:
-        logger.error(f"Error generating test cases: {str(e)}")
+        logger.error(f"Error generating test cases: {str(e)}", exc_info=True)
         return GenerateTestCasesResponse(
             testCases=[],
             success=False,
-            error=str(e)
+            error=f"Unexpected error: {str(e)}"
         )
 
 @app.post("/api/modify-testcases", response_model=ModifyTestCasesResponse)
@@ -321,8 +439,17 @@ async def modify_test_cases(
     attachments: List[UploadFile] = File(default=[])
 ):
     try:
-        # Parse the form data
-        test_cases_data = json.loads(testCases)
+        # Parse the form data with better error handling
+        try:
+            test_cases_data = json.loads(testCases)
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse test cases JSON: {str(e)}")
+            return ModifyTestCasesResponse(
+                modifiedTestCases=[],
+                success=False,
+                error=f"Invalid JSON in test cases: {str(e)}"
+            )
+            
         is_split_request = isSplitRequest.lower() == "true"
         
         # Convert to TestCase objects
@@ -360,14 +487,15 @@ async def modify_test_cases(
             test_cases_text = ""
             for tc in test_cases_list:
                 test_cases_text += f"""
-Test Case ID: {tc.testCaseId}
-Description: {tc.description}
-Preconditions: {tc.preconditions}
-Steps: {'; '.join(tc.steps)}
-Expected Result: {tc.expectedResult}
-Postconditions: {tc.postconditions}
----
-"""
+                Test Case ID: {tc.testCaseId}
+                Description: {tc.description}
+                Preconditions: {tc.preconditions}
+                Steps: {'; '.join(tc.steps)}
+                Expected Result: {tc.expectedResult}
+                Postconditions: {tc.postconditions}
+                ---
+                """
+            logger.info(f"Processing {len(test_cases_list)} test cases for requirement {req_id}")
 
             # Customize prompt based on whether it's a split request
             if is_split_request:
@@ -440,7 +568,7 @@ Return as a JSON array with this exact structure:
 
 Make sure to preserve the original test case IDs and requirement IDs while applying the modifications with automotive engineering precision.
                 """
-
+            
             # Prepare content for Gemini
             contents = [
                 types.Content(
@@ -488,23 +616,23 @@ Make sure to preserve the original test case IDs and requirement IDs while apply
                     continue
 
             config = types.GenerateContentConfig(
-                temperature=0.1,  # Very low for deterministic outputs
-                top_p=0.1,        # Low for focused, consistent responses
+                temperature=0.7,  # Very low for deterministic outputs
+                top_p=0.9,        # Low for focused, consistent responses
                 max_output_tokens=8192,
             )
 
             def sync_generate():
                 # Try multiple model names in case one doesn't work
                 model_names = [
-                    "gemini-2.5-flash",
-                    "gemini-2.5-flash-001", 
+                    "gemini-2.0-flash-001",
+                    "gemini-2.0-flash-001", 
                     "gemini-2.0-flash-001",
                     "gemini-2.0-flash"
                 ]
                 
                 for model_name in model_names:
                     try:
-                        print(f"Trying modify model: {model_name}")
+                        logger.info(f"Trying modify model: {model_name}")
                         response = ""
                         for chunk in client.models.generate_content_stream(
                             model=model_name,
@@ -513,21 +641,28 @@ Make sure to preserve the original test case IDs and requirement IDs while apply
                         ):
                             if chunk.text:
                                 response += chunk.text
-                        print(f"Success with modify model: {model_name}")
+                        logger.info(f"Success with modify model: {model_name}")
                         return response
                     except Exception as e:
-                        print(f"Failed with modify {model_name}: {str(e)}")
+                        logger.error(f"Failed with modify {model_name}: {str(e)}")
                         continue
                 
                 raise Exception("All modify model variants failed")
 
             response_text = await asyncio.to_thread(sync_generate)
 
-            # Extract JSON from Gemini response
+            # Extract JSON from Gemini response with better error handling
             try:
                 start_idx = response_text.find('[')
                 end_idx = response_text.rfind(']') + 1
-                json_str = response_text[start_idx:end_idx] if start_idx != -1 else response_text
+                
+                if start_idx == -1 or end_idx == 0:
+                    logger.error("No JSON array found in modify response")
+                    # Return original test cases if parsing fails
+                    modified_test_cases.extend(test_cases_list)
+                    continue
+                    
+                json_str = response_text[start_idx:end_idx]
                 modified_data = json.loads(json_str)
 
                 # Convert to TestCase objects
@@ -565,8 +700,8 @@ Make sure to preserve the original test case IDs and requirement IDs while apply
                             postconditions=tc_data.get("postconditions", original_tc.postconditions)
                         ))
 
-            except json.JSONDecodeError:
-                logger.error("Failed to parse JSON from Gemini response for modification")
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse JSON from Gemini response for modification: {str(e)}")
                 # Return original test cases if parsing fails
                 modified_test_cases.extend(test_cases_list)
 
@@ -639,20 +774,20 @@ async def download_selected_test_cases(request: DownloadSelectedRequest):
 
 @app.get("/api/health")
 async def health_check():
-    return {"status": "ok", "model": "gemini-2.5-flash"}
+    return {"status": "ok", "model": "gemini-2.0-flash-001"}
 
 if __name__ == "__main__":
     import uvicorn
     DEBUG_MODE = os.getenv("DEBUG_MODE", "false").lower() == "true"
     if DEBUG_MODE:
-        print("CLI Debug Mode with Gemini 2.5 Flash")
+        print("CLI Debug Mode with Gemini 2.0 Flash")
         while True:
             u = input("You: ")
             if u.lower() in ("exit", "quit"):
                 break
             def cli_call():
                 return client.models.generate_content(
-                    model="gemini-2.5-flash",  # Official stable model name
+                    model="gemini-2.0-flash-001",  # Official stable model name
                     contents=[types.Part(text=u)],
                     config=types.GenerateContentConfig(
                         temperature=0.1,  # Deterministic for CLI too
@@ -660,6 +795,6 @@ if __name__ == "__main__":
                         max_output_tokens=1024,
                     )
                 ).text
-            print("Gemini 2.5 Flash:", cli_call())
+            print("Gemini 2.0 Flash:", cli_call())
     else:
         uvicorn.run(app, host="0.0.0.0", port=8000)

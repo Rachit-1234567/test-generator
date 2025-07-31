@@ -73,62 +73,110 @@ class DownloadSelectedRequest(BaseModel):
 # Automotive Test Engineer Prompt Template
 AUTOMOTIVE_PROMPT_TEMPLATE = """You are a senior automotive test engineer working on ECU validation for production software. You are given a simplified OEM requirement document (or an expert-cleaned version), and your task is to generate technically accurate, hardware-implementable test cases suitable for integration and validation teams.
 
-For each requirement in the input list, generate exactly one test case. Process each requirement independently and do not carry forward assumptions.
+Write testcases in generic and reusable format that can be used across different ECU platforms. Each test case must be clear, concise, and executable by hardware teams using tools like Vector Canoe, CAPL, or diagnostic tools.
+
+For each requirement in the input list, generate exactly one test case. Process each requirement independently.
 
 Your output must be in JSON format with the following structure for each test case:
 {{
   "testCaseId": "TC_001",
-  "requirementId": "REQ_001",
+  "requirementId": "REQ_001", 
   "description": "[Copy requirement text exactly without changing or rephrasing]",
   "preconditions": "[ECU initialization and setup conditions]",
-  "steps": ["Step 1: [Action]", "Step 2: [Action]", "Step 3: [Action]"],
-  "expectedResult": "[Expected outcomes with numbered steps if needed]",
+  "steps": ["Step 1: [Action with specific technical details]", "Step 2: [Action with specific technical details]", "Step 3: [Action with specific technical details]"],
+  "expectedResult": "[Expected outcomes with specific technical responses and numbered steps]",
   "postconditions": "[System state after test execution]"
 }}
 
 ### Instructions for Generating Test Cases:
+- Use **numbered steps** (Step 1, Step 2, Step 3...) in the **steps** and **expectedResult** fields to clearly define actions and outcomes.
+- Every step must be **factual**, **observable**, and **hardware-executable** with **specific technical implementation details**.
+- Focus on **practical implementation** rather than theoretical explanations.
+- Use **realistic technical language** that mirrors how human automotive testers write.
+- **Minimize theory and maximize practical, executable actions**.
 
-- ✅ Copy the requirement text exactly into the "description" field without changing or rephrasing it. This field must match the input requirement word-for-word.
-- Use **numbered steps** (Step 1, Step 2, Step 3...) in the **steps** and **expectedResult** fields to clearly define actions and outcomes, like an algorithm.
-- Every step must be **factual**, **observable**, and **hardware-executable**.
-- Do **not** make assumptions or guess missing technical details. **If something is unspecified or vague in the requirement, explicitly state that it requires manual definition or further information.**
-- Use **realistic technical language** that mirrors how human automotive testers write. **Provide specific values, CAN IDs, UDS requests, timing parameters, or signal states if the requirement implies them, or indicate where they are missing.**
+### Critical Requirements for Technical Specificity:
 
-### Technical Expectations:
+**For UDS/Diagnostic Services:**
+- Always specify exact request formats and expected response formats
+- Use placeholder format when exact values are not provided in requirements
 
-- Apply engineering clarity: include frequency calculations, timing logic, bit-length checks, etc. if relevant. **Show the specific calculations or logic derived from the requirement.**
-- Only include UDS frames (e.g., 0x10 01, 0x31 01) or CAN IDs when the requirement directly references diagnostics or communication. **Specify the exact UDS frame or CAN ID if the requirement provides enough detail, or use a placeholder like [Specific UDS Request Needed].**
-- If a requirement references signal timing, bit width, or cycle time — **show the math** or logic clearly. **Provide specific values or ranges based on the requirement, or mark them as needing definition.**
+**Example Input/Output Format for DIDs:**
+- Test Input: `22 [DID][DID]` 
+- Expected Result: `62 [DID][DID] [Data]`
+
+**Example Input/Output Format for Security Access:**
+- Test Input: `27 [SEC_LVL]`
+- Expected Result: `67 [SEC_LVL] [SEED_BYTES...]`
+
+**Example Input/Output Format for IO Control:**
+- Test Input: `2F [IOI_HIGH] [IOI_LOW] [SUB_FUNCTION] [CONTROL_VALUE]`
+- Expected Result: `6F [IOI_HIGH] [IOI_LOW] [SUB_FUNCTION] [CONTROL_VALUE]`
+
+### Placeholder Handling and Technical Format:
+
+When requirements mention UDS services, DIDs, RIDs, or IO values but do not specify exact values, use this technical format:
+
+**For Read Data By Identifier:**
+```
+Step 1: Send 22 [DID][DID] request to ECU
+Expected Result: ECU returns 62 [DID][DID] [Data] positive response
+Where: [DID][DID] - Data Identifier from ODX/CDD, [Data] - Current I/O status
+```
+
+**For Security Access:**
+```
+Step 1: Send 27 [SEC_LVL] request to ECU  
+Expected Result: ECU returns 67 [SEC_LVL] [SEED_BYTES...] 
+Where: [SEC_LVL] - Security level, [SEED_BYTES...] - Random seed for key calculation
+```
+
+**For IO Control:**
+```
+Step 1: Send 2F [IOI_HIGH] [IOI_LOW] [SUB_FUNCTION] [CONTROL_VALUE] request
+Expected Result: ECU returns 6F [IOI_HIGH] [IOI_LOW] [SUB_FUNCTION] [CONTROL_VALUE] positive response
+Where: [IOI_HIGH][IOI_LOW] - IO Control Parameter, [SUB_FUNCTION] - Control type, [CONTROL_VALUE] - Target value
+```
+
+### Practical Implementation Focus:
+
+- **NO lengthy theoretical explanations** about protocols or standards
+- **Focus on executable actions** that can be directly implemented in test tools
+- **Specify exact frame formats** for CAN/UDS communications where applicable
+- **Include practical timing constraints** only when specified in requirements
+- **Use concrete technical language** that hardware teams can directly execute
+
+### Error Handling Format:
+
+When security conditions are not met:
+- Expected Result: `7F [SERVICE_ID] [NRC_CODE]` 
+- Example: `7F 2F 33` (NRC_SECURITY_ACCESS_DENIED)
+
+When invalid parameters are used:
+- Expected Result: `7F [SERVICE_ID] [NRC_CODE]`
+- Example: `7F 22 31` (NRC_REQUEST_OUT_OF_RANGE)
 
 ### Output Language and Format Rules:
 
-- Avoid robotic or generic phrasing.
-- Use testable, real-world instructions like:
-  - "Send diagnostic session request using UDS service 0x10 03"
-  - "Monitor CAN ID 0x123 on bus channel 1"
-  - "Set application cycle time to 5 ms"
-- If a requirement is vague, explicitly state that technical details are missing and cannot be generated automatically. **Do not invent details.**
-- Ensure output is clear enough for hardware teams to execute directly using tools like Vector Canoe, CAPL, or diagnostic tools.
+- **Minimize explanatory text** - focus on actionable steps
+- **Use technical shorthand** familiar to automotive testers
+- **Avoid robotic or generic phrasing** - use practical engineering language
+- **Ensure output is immediately executable** using Vector Canoe, CAPL, or diagnostic tools
+- **Do not include engineering theory** unless absolutely required for test execution
 
-### 🔍 Additional Guidance for Logic and Engineering Explanation:
+### Additional Technical Guidance:
 
-- Only include **engineering logic/math** (e.g., frequency = 1 / period, counter = 4-bit ⇒ range 0–15) if the requirement clearly refers to:
-  - Signal timing, period, or frequency
-  - Application cycle time
-  - Counters, bit-widths, or CRCs
-  - Diagnostic services, E2E profiles, or retry limits
+- Only include **technical calculations** if the requirement explicitly requires them for test execution
+- If the requirement does NOT specify exact technical details, clearly mark as:
+  - **"[Technical Detail: To be defined from ODX/CDD]"**
+  - **"[Parameter: Refer to ECU specification]"**
 
-- If the requirement does NOT specify these kinds of details, do **not invent or assume them**. Instead, clearly mark the expected result or step as:
-  - **"[Missing: Required technical detail not provided in requirement]"**
-
-- If error codes are mentioned (e.g., E_SAFETY_VALID_REP), ensure only those codes are expected in the result — do not add others.
-
-### ⚠️ Final Notes:
+### Final Notes:
 
 - Return test cases in JSON array format
 - Do not include extra comments or explanations outside the JSON structure
-- Do not invent technical values (IDs, timing) unless present in the requirement. **If values are missing, indicate that they need to be defined.**
-- Ensure output is clear enough for hardware teams to execute directly using tools like Vector Canoe, CAPL, or diagnostic tools.
+- Focus on **practical test execution** rather than comprehensive documentation
+- Ensure **immediate implementability** by hardware validation teams
 
 Testing approach: **{testability_type}** testing characteristics:
 - Blackbox: Focus on input-output behavior without internal structure knowledge
@@ -138,7 +186,8 @@ Testing approach: **{testability_type}** testing characteristics:
 Requirements to process:
 {requirements}
 
-Generate comprehensive automotive test cases following the above guidelines and return as JSON array."""
+Generate practical automotive test cases following the above guidelines and return as JSON array."""
+
 
 @app.post("/api/extract", response_model=ExtractResponse)
 async def extract_requirements(
@@ -251,12 +300,12 @@ async def generate_test_cases(
         
         print("Using Gemini 2.5 Flash with automotive prompt...")
         print(f"Processing {len(req_data)} requirements...")
-        print("Model being used: gemini-2.5-flash")  # Debug line
+        print("Model being used: gemini-2.0-flash-001")  # Debug line
 
         def sync_generate():
             response = ""
             for chunk in client.models.generate_content_stream(
-                model="gemini-2.5-pro-002",  # Updated to Gemini 2.5 Pro
+                model="gemini-2.0-flash-001",  # Updated to Gemini 2.5 Pro
                 contents=contents,
                 config=config
             ):
@@ -360,14 +409,15 @@ async def modify_test_cases(
             test_cases_text = ""
             for tc in test_cases_list:
                 test_cases_text += f"""
-Test Case ID: {tc.testCaseId}
-Description: {tc.description}
-Preconditions: {tc.preconditions}
-Steps: {'; '.join(tc.steps)}
-Expected Result: {tc.expectedResult}
-Postconditions: {tc.postconditions}
----
-"""
+                Test Case ID: {tc.testCaseId}
+                Description: {tc.description}
+                Preconditions: {tc.preconditions}
+                Steps: {'; '.join(tc.steps)}
+                Expected Result: {tc.expectedResult}
+                Postconditions: {tc.postconditions}
+                ---
+                """
+            print(test_cases_text, modificationInstruction)
 
             # Customize prompt based on whether it's a split request
             if is_split_request:
@@ -440,7 +490,7 @@ Return as a JSON array with this exact structure:
 
 Make sure to preserve the original test case IDs and requirement IDs while applying the modifications with automotive engineering precision.
                 """
-
+            print(prompt)
             # Prepare content for Gemini
             contents = [
                 types.Content(
@@ -488,16 +538,16 @@ Make sure to preserve the original test case IDs and requirement IDs while apply
                     continue
 
             config = types.GenerateContentConfig(
-                temperature=0.1,  # Very low for deterministic outputs
-                top_p=0.1,        # Low for focused, consistent responses
+                temperature=0.7,  # Very low for deterministic outputs
+                top_p=0.9,        # Low for focused, consistent responses
                 max_output_tokens=8192,
             )
 
             def sync_generate():
                 # Try multiple model names in case one doesn't work
                 model_names = [
-                    "gemini-2.5-flash",
-                    "gemini-2.5-flash-001", 
+                    "gemini-2.0-flash-001",
+                    "gemini-2.0-flash-001", 
                     "gemini-2.0-flash-001",
                     "gemini-2.0-flash"
                 ]
@@ -639,7 +689,7 @@ async def download_selected_test_cases(request: DownloadSelectedRequest):
 
 @app.get("/api/health")
 async def health_check():
-    return {"status": "ok", "model": "gemini-2.5-flash"}
+    return {"status": "ok", "model": "gemini-2.0-flash-001"}
 
 if __name__ == "__main__":
     import uvicorn
@@ -652,7 +702,7 @@ if __name__ == "__main__":
                 break
             def cli_call():
                 return client.models.generate_content(
-                    model="gemini-2.5-flash",  # Official stable model name
+                    model="gemini-2.0-flash-001",  # Official stable model name
                     contents=[types.Part(text=u)],
                     config=types.GenerateContentConfig(
                         temperature=0.1,  # Deterministic for CLI too

@@ -526,7 +526,7 @@ const TestCases = () => {
             onClick={() => navigate("/")}
             className="flex items-center gap-2"
           >
-            Restart
+            Start New Session
           </Button>
         </div>
       </div>
